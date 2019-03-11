@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import MainMenu from "./scenes/MainMenu"
-import SubjectSelection from "./scenes/SubjectSelection"
-import Game from "./scenes/Game"
+import MainMenu from "./scenes/MainMenu";
+import SubjectSelection from "./scenes/SubjectSelection";
+import Game from "./scenes/Game";
 
 const config = {
   type: Phaser.AUTO,
@@ -12,10 +12,11 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 500 },
-      debug: true
+      gravity: { y: 400 },
+      debug: false
     }
   }
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
+// const game = new Phaser.Game(config);

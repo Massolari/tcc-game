@@ -3,7 +3,7 @@ const subjects = [
     { id: 2, desc: 'Matematica' },
     { id: 3, desc: 'Geografia' },
     { id: 4, desc: 'Historia' }
-]
+];
 
 const subitens = [
     {
@@ -20,7 +20,7 @@ const subitens = [
             { id: 2, desc: 'Par ou impar' }
         ]
     }
-]
+];
 
 const words = [
     {
@@ -41,14 +41,22 @@ const words = [
             { weakness: 2, desc: 'Acreditar'}
         ]
     }
-]
+];
 
-export const getAllWords = () => [ ...words, ...(localStorage.getItem('words') || [])]
+const getStorage = (data) => localStorage.getItem(data) || [];
 
-export const getSubitemWords = ({ subject, subitem }) => getAllWords().find(w => w.subject === subject && w.subitem === subitem)
+const getStorageWords = () => getStorage('words');
 
-export const getAllSubitens = () => [ ...subitens, ...(localStorage.getItem('subitens') || [])]
+const getStorageSubitens = () => getStorage('subitens');
 
-export const getSubjectSubitens = (subject) => getAllSubitens().find(s => s.subject === subject)
+const getStorageSubjects = () => getStorage('subjects');
 
-export const getSubjects = () => [ ...subjects, ...(localStorage.getItem('subjects') || [])];
+export const getAllWords = () => words.concat(getStorageWords());
+
+export const getSubitemWords = ({ subject, subitem }) => getAllWords().find(w => w.subject === subject && w.subitem === subitem);
+
+export const getAllSubitens = () => subitens.concat(getStorageSubitens());
+
+export const getSubjectSubitens = (subject) => getAllSubitens().find(s => s.subject === subject);
+
+export const getSubjects = () => subjects.concat(getStorageSubjects());
