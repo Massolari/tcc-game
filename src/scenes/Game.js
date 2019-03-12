@@ -55,7 +55,7 @@ export default class Game extends Phaser.Scene {
         return this.takeRandomWord().desc;
     }
     createTextWord(word) {
-        return this.add.bitmapText(604, 0, 'font', word, 42)
+        return this.add.bitmapText(604, 0, 'font', word, 32)
             .setOrigin(0.5, 0.5)
             .setTintFill(0);
     }
