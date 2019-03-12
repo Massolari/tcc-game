@@ -33,17 +33,22 @@ export default class Game extends Phaser.Scene {
         this.words = words;
         this.ammo = ammo;
         this.droppedWords = [];
-        this.level = 0;
+        this.level = 8;
         this.dropTime = 5000;
+        this.gameOver = false;
         this.cameras.main.setBackgroundColor('#7fe3f4');
         this.panel = this.add.sprite(604, 133, 'blue', 'blue_panel.png')
             .setCrop(1, 1, 98, 97)
             .setScale(4, 10);
         const texts = [];
         this.dropWord(5);
-        this.dropWordAccordingToLevel();
+        setTimeout(this.dropWordAccordingToLevel.bind(this), this.dropTime);
     }
     update() {
+        if (this.gameOver) {
+            return;
+        }
+        this.checkGameOver();
     }
     getRandomNumberUntil(number) {
         return Math.floor(Math.random() * number);
@@ -64,9 +69,7 @@ export default class Game extends Phaser.Scene {
     }
     addCollisionsText(text) {
         this.physics.world.enableBody(text);
-        text.body.setCollideWorldBounds(true);
         console.log(text);
-        const that = this;
         this.physics.add.collider(text, this.droppedWords, (s1, s2) => {
             const b1 = s1.body;
             const b2 = s2.body;
@@ -79,6 +82,8 @@ export default class Game extends Phaser.Scene {
             b1.y += (b2.top - b1.bottom);
             b1.stop();
         });
+        this.lastDroppedWord = text;
+        text.body.setCollideWorldBounds(true);
     }
     dropWord(count = 1) {
         const text = this.createRandomTextWord();
@@ -98,5 +103,13 @@ export default class Game extends Phaser.Scene {
             clearInterval(this.dropTimer);
         }
         this.dropTimer = this.dropWordEvery(this.dropTime - (this.level * 500));
+    }
+    checkGameOver() {
+        if (this.lastDroppedWord && this.lastDroppedWord.body.touching.down && this.lastDroppedWord.body.y < 0) {
+            this.add.text(400, 300, 'GAME OVER', { fontSize: 42, fill: '#000' }).setOrigin(0.5, 0.5);
+            this.gameOver = true;
+            clearInterval(this.dropTimer);
+            this.lastDroppedWord.body.setCollideWorldBounds(false);
+        }
     }
 }
