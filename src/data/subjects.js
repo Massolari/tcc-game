@@ -33,8 +33,10 @@ const words = [
         subject: 1,
         subitem: 1,
         ammo: [
-            { id: 1, desc: 'Verbo transitivo direto' },
-            { id: 2, desc: 'Verbo transitivo indireto' }
+            // { id: 1, desc: 'Verbo transitivo direto' },
+            // { id: 2, desc: 'Verbo transitivo indireto' }
+            { id: 1, desc: 'V.T.D.' },
+            { id: 2, desc: 'V.T.I.' }
         ],
         words: [
             { weakness: 1, desc: 'Comer'},
