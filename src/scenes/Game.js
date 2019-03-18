@@ -46,7 +46,7 @@ export default class Game extends Phaser.Scene {
 		this.createPanel();
 		this.score = 0;
 		this.scoreText = this.add.bitmapText(16, 10, 'joystixFont', '', 23).setTint(0);
-		this.levelText = this.add.bitmapText(this.cameras.main.width - 150, 10, 'joystixFont', '', 23).setTint(0);
+		this.levelText = this.add.bitmapText(this.cameras.main.width - 160, 10, 'joystixFont', '', 23).setTint(0);
 		this.updateScoreText();
 		this.updateLevelText();
 		this.dropWord(5).then(() => {
@@ -63,9 +63,9 @@ export default class Game extends Phaser.Scene {
             .setCrop(1, 1, 98, 97)
             .setScale(5, 10);
 		this.panelFloor = this.physics.add.sprite(this.panelX, 600, 'blue', 'blue_button04.png')
-			.setScale(2, 0.5)
+			.setScale(2, 0.75)
 			.setOrigin(0.5, 1)
-			.setVisible(false);
+			.setVisible(true);
 		this.panelFloor.body.setCollideWorldBounds(true);
 	}
 	updateScoreText() {
