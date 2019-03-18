@@ -15,23 +15,23 @@ export default class MainMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.cameras.main.setBackgroundColor('#7fe3f4')
-        this.load.atlasXML('grey', greySheetPng, greySheetXml)
-        this.load.atlasXML('green', greenSheetPng, greenSheetXml)
-        this.load.bitmapFont('font', fontPng, fontFnt)
-        this.load.bitmapFont('font_thin', fontThinPng, fontThinFnt)
+        this.cameras.main.setBackgroundColor('#7fe3f4');
+        this.load.atlasXML('grey', greySheetPng, greySheetXml);
+        this.load.atlasXML('green', greenSheetPng, greenSheetXml);
+        this.load.bitmapFont('font', fontPng, fontFnt);
+        this.load.bitmapFont('font_thin', fontThinPng, fontThinFnt);
     }
     create() {
         const { centerX, centerY } = this.cameras.main;
-        const btnStart = this.add.sprite(centerX, centerY, 'grey', 'grey_button15.png').setVisible(false)
-        const btnStartSelected = this.add.sprite(centerX, centerY, 'green', 'green_button00.png')
+        const btnStart = this.add.sprite(centerX, centerY, 'grey', 'grey_button15.png').setVisible(false);
+        const btnStartSelected = this.add.sprite(centerX, centerY, 'green', 'green_button00.png');
         const titleText = this.add.bitmapText(centerX, 56, 'font', 'Titulo do jogo', 42)
             .setOrigin(0.5, 0.5)
-            .setTintFill(0)
+            .setTintFill(0);
         const startText = this.add.bitmapText(centerX, centerY, 'font_thin', 'Iniciar', 15)
             .setOrigin(0.5, 0.5)
-            .setTintFill(0)
-        this.keys = this.input.keyboard.addKeys('SPACE')
+            .setTintFill(0);
+        this.keys = this.input.keyboard.addKeys('SPACE');
     }
     update() {
         if (this.keys.SPACE.isDown) {

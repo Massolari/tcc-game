@@ -33,8 +33,6 @@ const words = [
         subject: 1,
         subitem: 1,
         ammo: [
-            // { id: 1, desc: 'Verbo transitivo direto' },
-            // { id: 2, desc: 'Verbo transitivo indireto' }
             { id: 1, desc: 'V.T.D.' },
             { id: 2, desc: 'V.T.I.' }
         ],
@@ -47,6 +45,24 @@ const words = [
             { weakness: 2, desc: 'Lembrar'},
             { weakness: 2, desc: 'Responder'},
             { weakness: 2, desc: 'Acreditar'}
+        ]
+    },
+    {
+        subject: 1,
+        subitem: 2,
+        ammo: [
+            { id: 1, desc: 'Verbo' },
+            { id: 2, desc: 'Adjetivo' }
+        ],
+        words: [
+            { weakness: 1, desc: 'Correr'},
+            { weakness: 1, desc: 'Dirigir'},
+            { weakness: 1, desc: 'Limpar'},
+            { weakness: 1, desc: 'Digitar'},
+            { weakness: 2, desc: 'Limpo'},
+            { weakness: 2, desc: 'Digitador'},
+            { weakness: 2, desc: 'Veloz'},
+            { weakness: 2, desc: 'Motorista'}
         ]
     },
     {
