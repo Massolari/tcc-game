@@ -35,28 +35,48 @@ export default class Game extends Phaser.Scene {
         this.words = words;
         this.ammo = ammo;
         this.droppedWords = [];
+        this.startingGame = true;
+        this.wordsWillDrop = 0;
         this.level = 0;
-        this.dropTime = 5000;
+        this.dropTime = 3500; // 5000
         this.gameOver = false;
         this.cameras.main.setBackgroundColor('#7fe3f4');
 		this.wordHeight = 33.44;
         this.panelX = 555;
         this.panelY = 133;
 		this.selectedWord = 0;
+        this.selectedAmmo = 0;
 		this.createPanel();
 		this.score = 0;
 		this.scoreText = this.add.bitmapText(16, 10, 'joystixFont', '', 23).setTint(0);
 		this.levelText = this.add.bitmapText(this.cameras.main.width - 160, 10, 'joystixFont', '', 23).setTint(0);
 		this.updateScoreText();
 		this.updateLevelText();
-		this.dropWord(5).then(() => {
-            this.player = this.createRandomTextAmmo();
-            this.dropWordAccordingToLevel();
-		});
-        this.input.keyboard.on('keydown', this.handleKey.bind(this));
-		console.log('teste');
+        this.wordsWillDrop += 5;
     }
     update() {
+        this.checkGameOver();
+        if (this.gameOver) {
+            return;
+        }
+        if (this.wordsWillDrop > 0) {
+            this.dropWord();
+        }
+        if (this.startingGame && this.wordsWillDrop === 0) {
+            this.player = this.createTextAmmo(this.ammo[0].desc);
+            this.dropWordAccordingToLevel();
+            this.input.keyboard.on('keydown', this.handleKey.bind(this));
+            this.startingGame = false;
+        }
+    }
+    checkGameOver() {
+        if (this.droppedWords.length <= 0) {
+            return;
+        }
+        const towerHeight = this.droppedWords.length * this.droppedWords[0].height + this.panelFloor.height;
+        if (towerHeight > this.cameras.main.worldView.height) {
+            this.endGame();
+        }
     }
 	createPanel() {
 		this.panel = this.add.sprite(this.panelX, this.panelY, 'blue', 'blue_panel.png')
@@ -84,7 +104,7 @@ export default class Game extends Phaser.Scene {
 	raiseLevel() {
 		this.level++;
 		this.updateLevelText();
-		this.dropWordAccordingToLevel();
+        this.wordsWillDrop += 5;
 	}
 	handleKey({ key }) {
 		console.log(key);
@@ -95,6 +115,12 @@ export default class Game extends Phaser.Scene {
             case 'ArrowUp':
                 this.selectUp();
                 break;
+            case 'ArrowLeft':
+                this.selectPrevAmmo();
+                break;
+            case 'ArrowRight':
+                this.selectNextAmmo();
+                break;
             case ' ':
                 this.shoot();
                 break;
@@ -103,32 +129,34 @@ export default class Game extends Phaser.Scene {
                 break;
         }
 	}
+    selectWord(futureSelectedWord) {
+        const futureWord = this.droppedWords[futureSelectedWord];
+		if (!futureWord || !futureWord.body.caiu) {
+            return;
+		}
+        this.selectedWord = futureSelectedWord;
+		this.player.y = futureWord.y;
+    }
 	selectDown() {
-		this.selectedWord--;
-		if (this.selectedWord < 0 || !this.droppedWords[this.selectedWord].body.touching.down) {
-			// this.selectedWord = this.getLastWordTouchingDown();
-			this.selectedWord++;
-		}
-		console.log(this.droppedWords);
-		this.player.y = this.droppedWords[this.selectedWord].y;
-	}
-	getLastWordTouchingDown(index = -1) {
-		if (index === -1) {
-			index = this.droppedWords.length - 1;
-		}
-		if (!this.droppedWords[index].body.touching.down) {
-			return this.getLastWordTouchingDown(index - 1);
-		}
-		return index;
+        this.selectWord(this.selectedWord - 1);
 	}
 	selectUp() {
-		this.selectedWord++;
-		if (this.selectedWord > this.droppedWords.length - 1 || !this.droppedWords[this.selectedWord].body.touching.down) {
-			// this.selectedWord = 0;
-			this.selectedWord--;
-		}
-		this.player.y = this.droppedWords[this.selectedWord].y;
+        this.selectWord(this.selectedWord + 1);
 	}
+    selectPrevAmmo() {
+        this.selectedAmmo--;
+        if (this.selectedAmmo < 0) {
+            this.selectedAmmo = this.ammo.length - 1;
+        }
+        this.player.text = this.ammo[this.selectedAmmo].desc;
+    }
+    selectNextAmmo() {
+        this.selectedAmmo++;
+        if (this.selectedAmmo > this.ammo.length - 1) {
+            this.selectedAmmo = 0;
+        }
+        this.player.text = this.ammo[this.selectedAmmo].desc;
+    }
 	shoot() {
 		const positionX = this.player.x + (this.player.width / 2);
 		const positionY = this.player.y + (this.player.height / 4);
@@ -151,7 +179,7 @@ export default class Game extends Phaser.Scene {
 			b.destroy();
 		});
 		this.physics.add.overlap(bullet, this.droppedWords, this.handleWordShot.bind(this));
-		this.changePlayerAmmo();
+		// this.changePlayerAmmo();
 	}
 	changePlayerAmmo() {
 		let newText = this.takeRandomAmmoDesc();
@@ -169,7 +197,7 @@ export default class Game extends Phaser.Scene {
 			wordObject.destroy();
 			return;
 		}
-		this.dropWord();
+		this.wordsWillDrop++;
 	}
     getRandomNumberUntil(number) {
         return Math.floor(Math.random() * number);
@@ -211,6 +239,8 @@ export default class Game extends Phaser.Scene {
 	preventFallThrough(s1, s2) {
 		const b1 = s1.body;
 		const b2 = s2.body;
+        b1.caiu = true;
+        b2.caiu = true;
 
 		if (b1.y > b2.y) {
 			b2.y += (b1.top - b2.bottom);
@@ -220,33 +250,24 @@ export default class Game extends Phaser.Scene {
 		b1.y += (b2.top - b1.bottom);
 		b1.stop();
 	}
-    dropWord(count = 1) {
-		return new Promise(resolve => {
-			if (this.droppedWords.length > 0) {
-				const towerHeight = this.droppedWords.length * this.droppedWords[0].height;
-				if (towerHeight > this.cameras.main.worldView.height) {
-					this.endGame();
-					resolve();
-					return;
-				}
-			}
-			const text = this.createRandomTextWord();
-			this.addCollisionsText(text);
-			this.droppedWords.push(text);
-			count--;
-			if (count <= 0) {
-				resolve();
-				return;
-			}
-			setTimeout(() => {
-				this.dropWord(count).then(() => {
-					resolve();
-				});
-			}, 650);
-		});
+    dropWord() {
+        if (this.droppingTimer) {
+            return;
+        }
+        console.log(`Vou dropar! Faltam: ${this.wordsWillDrop}`);
+        this.droppingTimer = setTimeout(() => {
+            this.wordsWillDrop--;
+            const text = this.createRandomTextWord();
+            this.addCollisionsText(text);
+            this.droppedWords.push(text);
+            this.droppingTimer = null;
+            console.log(`Dropei! Faltam ${this.wordsWillDrop}`);
+        }, 650);
     }
     dropWordEvery(time) {
-        return setInterval(this.dropWord.bind(this), time);
+        return setInterval(() => {
+            this.wordsWillDrop++;
+        }, time);
     }
     dropWordAccordingToLevel() {
         if (this.dropTimer) {
