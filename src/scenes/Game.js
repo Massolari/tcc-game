@@ -32,11 +32,13 @@ export default class Game extends Phaser.Scene {
     }
     create() {
         const { ammo, words } = getSubitemWords(this.data);
+        const { centerX, centerY } = this.cameras.main;
         this.words = words;
         this.ammo = ammo;
         this.droppedWords = [];
         this.startingGame = true;
         this.wordsWillDrop = 0;
+        this.dropQuantity = 1;
         this.level = 0;
         this.dropTime = 3500; // 5000
         this.gameOver = false;
@@ -49,10 +51,13 @@ export default class Game extends Phaser.Scene {
 		this.createPanel();
 		this.score = 0;
 		this.scoreText = this.add.bitmapText(16, 10, 'joystixFont', '', 23).setTint(0);
-		this.levelText = this.add.bitmapText(this.cameras.main.width - 160, 10, 'joystixFont', '', 23).setTint(0);
+		this.levelText = this.add.bitmapText(this.cameras.main.width - 180, 10, 'joystixFont', '', 23).setTint(0);
 		this.updateScoreText();
 		this.updateLevelText();
         this.wordsWillDrop += 5;
+        this.gameOverModal = this.add.sprite(centerX, centerY, 'grey', 'grey_panel.png')
+            .setScale(4, 3.5)
+            .setVisible(true);
     }
     update() {
         this.checkGameOver();
@@ -63,10 +68,12 @@ export default class Game extends Phaser.Scene {
             this.dropWord();
         }
         if (this.startingGame && this.wordsWillDrop === 0) {
-            this.player = this.createTextAmmo(this.ammo[0].desc);
-            this.dropWordAccordingToLevel();
-            this.input.keyboard.on('keydown', this.handleKey.bind(this));
             this.startingGame = false;
+            setTimeout(() => {
+                this.player = this.createTextAmmo(this.ammo[0].desc);
+                this.dropWordAccordingToLevel();
+                this.input.keyboard.on('keydown', this.handleKey.bind(this));
+            }, 2000)
         }
     }
     checkGameOver() {
@@ -105,6 +112,7 @@ export default class Game extends Phaser.Scene {
 		this.level++;
 		this.updateLevelText();
         this.wordsWillDrop += 5;
+        this.dropWordAccordingToLevel();
 	}
 	handleKey({ key }) {
 		console.log(key);
@@ -125,7 +133,8 @@ export default class Game extends Phaser.Scene {
                 this.shoot();
                 break;
             case 'Escape':
-
+                this.scene.pause();
+                this.scene.run('Pause');
                 break;
         }
 	}
@@ -254,7 +263,6 @@ export default class Game extends Phaser.Scene {
         if (this.droppingTimer) {
             return;
         }
-        console.log(`Vou dropar! Faltam: ${this.wordsWillDrop}`);
         this.droppingTimer = setTimeout(() => {
             this.wordsWillDrop--;
             const text = this.createRandomTextWord();
@@ -262,22 +270,28 @@ export default class Game extends Phaser.Scene {
             this.droppedWords.push(text);
             this.droppingTimer = null;
             console.log(`Dropei! Faltam ${this.wordsWillDrop}`);
-        }, 650);
+        }, 500);
     }
     dropWordEvery(time) {
         return setInterval(() => {
-            this.wordsWillDrop++;
+            this.wordsWillDrop += this.dropQuantity;
         }, time);
     }
     dropWordAccordingToLevel() {
         if (this.dropTimer) {
             clearInterval(this.dropTimer);
         }
-        this.dropTimer = this.dropWordEvery(this.dropTime - (this.level * 500));
+        const futureDropTime = this.dropTime - (this.level * 500);
+        if (futureDropTime < 0) {
+            this.dropQuantity++;
+        } else {
+            this.currentDropTime = futureDropTime;
+        }
+        this.dropTimer = this.dropWordEvery(this.currentDropTime);
     }
     endGame() {
-		this.add.text(400, 300, 'GAME OVER', { fontSize: 42, fill: '#000' }).setOrigin(0.5, 0.5);
 		this.gameOver = true;
+        this.gameOverModal.setVisible(true);
 		clearInterval(this.dropTimer);
 		this.lastDroppedWord.body.setCollideWorldBounds(false);
     }

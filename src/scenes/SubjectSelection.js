@@ -9,6 +9,7 @@ import fontFnt from '../assets/Font/font.fnt';
 import fontThinPng from '../assets/Font/font_thin.png';
 import fontThinFnt from '../assets/Font/font_thin.fnt';
 import { getSubjects, getSubjectSubitens } from '../data/subjects';
+import { selectButton, deselectButton, createButton } from '../modules/ui';
 
 export default class SubjectSelection extends Phaser.Scene {
     constructor() {
@@ -30,11 +31,7 @@ export default class SubjectSelection extends Phaser.Scene {
         this.subjects = getSubjects();
         this.selected = 0;
         this.panelSelected = 0;
-        this.panelButtons = {
-            normal: [],
-            selected: [],
-            texts: []
-        };
+        this.panelButtons = [];
         this.subitens = [];
         this.panelOpened = false;
         const { centerX, centerY } = this.cameras.main;
@@ -42,17 +39,13 @@ export default class SubjectSelection extends Phaser.Scene {
         let buttonX = initX;
         let buttonY = centerY - 150;
         let buttonsOnLine = 1;
-        // this.add.sprite(centerX, centerY, 'blue', 'blue_button13.png').setScale(1, 5)
         this.subjects.forEach(s => {
-            // this.buttons.normal.push(this.add.sprite(buttonX, buttonY, 'grey', 'grey_button15.png'));
+            const { button } = createButton(this, s.desc, { posX: buttonX, posY: buttonY });
             this.buttons.push({
                 subject: s.id,
-                button: this.add.sprite(buttonX, buttonY, 'grey', 'grey_button15.png')
+                button
             });
-            this.add.bitmapText(buttonX, buttonY, 'font_thin', s.desc, 15)
-                .setOrigin(0.5, 0.5)
-                .setTintFill(0);
-            if (buttonsOnLine < 3) {
+            if (buttonsOnLine < 4) {
                 buttonX += 220;
                 buttonsOnLine++;
                 return;
@@ -101,9 +94,9 @@ export default class SubjectSelection extends Phaser.Scene {
     }
     updateButtons(previousSelected = -1) {
         if (previousSelected > -1) {
-            this.buttons[previousSelected].button.clearTint();
+            deselectButton(this.buttons[previousSelected].button);
         }
-        this.buttons[this.selected].button.setTint(0x88e060);
+        selectButton(this.buttons[this.selected].button);
     }
     selectPrev() {
         if (this.selected === 0) {
@@ -138,34 +131,19 @@ export default class SubjectSelection extends Phaser.Scene {
     openPanel() {
         const subjectSelected = this.buttons[this.selected].subject;
         console.log("Selecionado: ", subjectSelected);
-        const { centerX } = this.cameras.main;
         this.panel.setVisible(true);
         this.panelOpened = true;
-        let buttonY = 100;
+        let buttonY = 180;
         const subitens = getSubjectSubitens(subjectSelected);
         if (!subitens || !subitens.itens) {
-            console.error("Erro ao buscar subitens! Retorno: ", subitens);
-            return;
+            throw new Error(`Erro ao buscar subitens! Retorno: ${JSON.stringify(subitens)}`);
         }
         this.subitens = subitens.itens;
         const scaleX = 2.3;
         const scaleY = 0.5;
         this.subitens.forEach(s => {
-            this.panelButtons.normal.push(
-                this.add.sprite(centerX, buttonY, 'grey', 'grey_button15.png')
-                    .setScale(scaleX, scaleY)
-            );
-            this.panelButtons.selected.push({
-                subitem: s.id,
-                button: this.add.sprite(centerX, buttonY, 'green', 'green_button00.png')
-                    .setVisible(false)
-                    .setScale(scaleX, scaleY)
-            });
-            this.panelButtons.texts.push(
-                this.add.bitmapText(centerX, buttonY, 'font_thin', s.desc, 13)
-                    .setOrigin(0.5, 0.5)
-                    .setTintFill(0)
-            );
+            const button = createButton(this, s.desc, { posY: buttonY, fontSize: 13, scaleX, scaleY });
+            this.panelButtons.push({ ...button, subitem: s.id });
             buttonY += 30;
         });
         this.updatePanelButtons();
@@ -174,20 +152,17 @@ export default class SubjectSelection extends Phaser.Scene {
         this.panel.setVisible(false);
         this.panelSelected = 0;
         this.panelOpened = false;
-        this.panelButtons.normal.forEach(b => b.destroy());
-        this.panelButtons.selected.forEach(b => b.button.destroy());
-        this.panelButtons.texts.forEach(t => t.destroy());
-        this.panelButtons.normal = [];
-        this.panelButtons.selected = [];
-        this.panelButtons.texts = [];
+        this.panelButtons.forEach(b => {
+            b.button.destroy();
+            b.label.destroy();
+        });
+        this.panelButtons = [];
     }
     updatePanelButtons(previousSelected = -1) {
         if (previousSelected > -1) {
-            this.panelButtons.selected[previousSelected].button.setVisible(false);
-            this.panelButtons.normal[previousSelected].setVisible(true);
+            deselectButton(this.panelButtons[previousSelected].button);
         }
-        this.panelButtons.selected[this.panelSelected].button.setVisible(true);
-        this.panelButtons.normal[this.panelSelected].setVisible(false);
+        selectButton(this.panelButtons[this.panelSelected].button);
     }
     handleKeyPanel(key) {
         switch (key) {
@@ -200,7 +175,7 @@ export default class SubjectSelection extends Phaser.Scene {
             case ' ':
                 this.scene.start('Game', {
                     subject: this.buttons[this.selected].subject,
-                    subitem: this.panelButtons.selected[this.panelSelected].subitem
+                    subitem: this.panelButtons[this.panelSelected].subitem
                 });
                 break;
             case 'Escape':
